@@ -244,7 +244,7 @@ All sample scripts are in the `tests/` directory:
 | `tests/test_if_else.cvm` | `./build/cvm tests/test_if_else.cvm` | `0`<br>`42`<br>`3`<br>`15` |
 | `tests/test_while.cvm` | `./build/cvm tests/test_while.cvm` | `1`<br>`2`<br>`3`<br>`4`<br>`5`<br>`55`<br>`120` |
 | `tests/test_fizzbuzz.cvm` | `./build/cvm tests/test_fizzbuzz.cvm` | `1`<br>`2`<br>`3`<br>`4`<br>`5`<br>`3`<br>`7`<br>`8`<br>`3`<br>`5`<br>`11`<br>`3`<br>`13`<br>`14`<br>`15`<br>`16`<br>`17`<br>`3`<br>`19`<br>`5` |
-| `tests/test_input.cvm` | `<code>printf "7\n" | ./build/cvm tests/test_input.cvm</code>` | `7`<br>`14` |
+| `tests/test_input.cvm` | `./build/cvm tests/test_input.cvm <<< "7"` | `7`<br>`14` |
 
 ---
 
