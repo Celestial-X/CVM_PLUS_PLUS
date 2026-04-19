@@ -291,4 +291,3 @@ cvm-plus-plus/
 
 ---
 
-*Built with ❤️ at IIT Guwahati — Coding Club Even Semester Projects 2026*
