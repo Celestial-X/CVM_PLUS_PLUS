@@ -10,13 +10,16 @@ Built as part of the **IIT Guwahati Coding Club Even Semester Projects 2026**.
 ## Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [Deliverables Checklist](#deliverables-checklist)
 - [Language Reference](#language-reference)
 - [Building](#building)
 - [Running](#running)
 - [Debug Mode](#debug-mode)
 - [Sample Scripts](#sample-scripts)
+- [Automated Test Runner](#automated-test-runner)
 - [Instruction Set Architecture (ISA)](#instruction-set-architecture-isa)
 - [Project Structure](#project-structure)
+- [Known Limitations](#known-limitations)
 
 ---
 
@@ -63,6 +66,22 @@ A register-free, **stack-based** execution engine. Maintains:
 - `stack` — operand stack (`vector<Value>`)
 - `vars` — variable slots (`vector<Value>`)
 - `ip` — instruction pointer
+
+---
+
+## Deliverables Checklist
+
+| Deliverable | File(s) / Path(s) | How to run / verify |
+|-------------|-------------------|---------------------|
+| Grammar + language definition | `README.md` (Language Reference) | Read language syntax and operators in this README |
+| ISA definition | `README.md` (ISA section), `src/vm.h` | `./build/cvm --debug tests/test_if_else.cvm` to inspect disassembly |
+| Lexer | `src/lexer.h`, `src/lexer.cpp` | `./build/cvm --debug tests/test_arithmetic.cvm` (token stream) |
+| Parser + AST | `src/parser.h`, `src/parser.cpp`, `src/ast.h` | `./build/cvm --debug tests/test_if_else.cvm` (AST output) |
+| Compiler (AST → bytecode) | `src/compiler.h`, `src/compiler.cpp` | `./build/cvm --debug tests/test_while.cvm` (bytecode disassembly) |
+| VM execution engine | `src/vm.h`, `src/vm.cpp` | `./build/cvm tests/test_booleans.cvm` |
+| CLI file runner + REPL | `src/main.cpp` | `./build/cvm tests/test_arithmetic.cvm` and `./build/cvm` |
+| Sample scripts | `tests/*.cvm` | `./run_tests.sh` |
+| Build configuration | `CMakeLists.txt` | `cmake -S . -B build && cmake --build build -j$(nproc)` |
 
 ---
 
@@ -124,8 +143,8 @@ input x;        // reads one integer from stdin into variable x
 
 ### With CMake (recommended)
 ```bash
-git clone https://github.com/<your-username>/cvm-plus-plus.git
-cd cvm-plus-plus
+git clone https://github.com/Celestial-X/CVM_PLUS_PLUS.git
+cd CVM_PLUS_PLUS
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
@@ -218,14 +237,30 @@ LetStmt("x")
 
 All sample scripts are in the `tests/` directory:
 
-| File | What it tests |
-|------|--------------|
-| `test_arithmetic.cvm` | `let`, `+`, `-`, `*`, `/`, unary `-`, parentheses |
-| `test_booleans.cvm` | `true`/`false`, all comparison operators, boolean equality |
-| `test_if_else.cvm` | `if`/`else`, nested conditionals, max of two numbers |
-| `test_while.cvm` | `while` loop, counter, sum 1–10, factorial 5! |
-| `test_fizzbuzz.cvm` | FizzBuzz 1–20 (integer-encoded: 3=Fizz, 5=Buzz, 15=FizzBuzz) |
-| `test_input.cvm` | `input` keyword, stdin reading |
+| Script | Command | Expected output |
+|--------|---------|-----------------|
+| `tests/test_arithmetic.cvm` | `./build/cvm tests/test_arithmetic.cvm` | `25`<br>`200`<br>`20`<br>`-10`<br>`40` |
+| `tests/test_booleans.cvm` | `./build/cvm tests/test_booleans.cvm` | `true`<br>`true`<br>`false`<br>`false`<br>`false`<br>`true`<br>`true`<br>`false`<br>`true` |
+| `tests/test_if_else.cvm` | `./build/cvm tests/test_if_else.cvm` | `0`<br>`42`<br>`3`<br>`15` |
+| `tests/test_while.cvm` | `./build/cvm tests/test_while.cvm` | `1`<br>`2`<br>`3`<br>`4`<br>`5`<br>`55`<br>`120` |
+| `tests/test_fizzbuzz.cvm` | `./build/cvm tests/test_fizzbuzz.cvm` | `1`<br>`2`<br>`3`<br>`4`<br>`5`<br>`3`<br>`7`<br>`8`<br>`3`<br>`5`<br>`11`<br>`3`<br>`13`<br>`14`<br>`15`<br>`16`<br>`17`<br>`3`<br>`19`<br>`5` |
+| `tests/test_input.cvm` | `printf "7\n" \| ./build/cvm tests/test_input.cvm` | `7`<br>`14` |
+
+---
+
+## Automated Test Runner
+
+Run all sample scripts and compare with expected outputs:
+
+```bash
+./run_tests.sh
+```
+
+If all checks pass, the script exits with status `0` and prints:
+
+```text
+All tests passed.
+```
 
 ---
 
@@ -264,6 +299,7 @@ All integers are encoded **little-endian 32-bit** immediately after the opcode b
 cvm-plus-plus/
 ├── CMakeLists.txt
 ├── README.md
+├── run_tests.sh
 ├── src/
 │   ├── main.cpp          # Entry point: REPL, file runner, debug pipeline
 │   ├── lexer.h / .cpp    # Tokenizer
@@ -283,6 +319,16 @@ cvm-plus-plus/
 
 ---
 
+## Known Limitations
+
+- Only `int` and `bool` data types are supported.
+- `input` accepts only integer input.
+- No string type, arrays, or user-defined functions.
+- No `for` loop, `break`, or `continue` (only `if/else` and `while`).
+- VM values are 32-bit integers/booleans only.
+
+---
+
 ## References
 
 - [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom — the definitive guide for this project architecture
@@ -290,4 +336,3 @@ cvm-plus-plus/
 - [Understanding Stack-Based Virtual Machines](https://en.wikipedia.org/wiki/Stack_machine)
 
 ---
-
