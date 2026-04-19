@@ -15,7 +15,9 @@ Built as part of the **IIT Guwahati Coding Club Even Semester Projects 2026**.
 - [Running](#running)
 - [Debug Mode](#debug-mode)
 - [Sample Scripts](#sample-scripts)
+- [Deliverables Checklist](#deliverables-checklist)
 - [Instruction Set Architecture (ISA)](#instruction-set-architecture-isa)
+- [Known Limitations](#known-limitations)
 - [Project Structure](#project-structure)
 
 ---
@@ -82,11 +84,11 @@ x = x + 1;          // re-assignment (no 'let')
 ```
 
 ### Operators
-| Category    | Operators                      |
-|-------------|-------------------------------|
-| Arithmetic  | `+`  `-`  `*`  `/`            |
+| Category    | Operators                          |
+|-------------|-----------------------------------|
+| Arithmetic  | `+`  `-`  `*`  `/`                |
 | Comparison  | `==`  `!=`  `<`  `<=`  `>`  `>=` |
-| Unary       | `-` (negation)                |
+| Unary       | `-` (negation)                    |
 
 > Note: Comparison operators always return a `bool`. Arithmetic operators require `int` operands.
 
@@ -119,24 +121,28 @@ input x;        // reads one integer from stdin into variable x
 ## Building
 
 ### Prerequisites
-- C++17 compiler (`g++` ≥ 8, or `clang++` ≥ 7)
-- CMake ≥ 3.16 (optional — you can also compile directly)
+- C++17 compiler (`g++` >= 8, or `clang++` >= 7)
+- CMake >= 3.16 (optional)
 
 ### With CMake (recommended)
 ```bash
-git clone https://github.com/<your-username>/cvm-plus-plus.git
-cd cvm-plus-plus
+git clone https://github.com/Celestial-X/CVM_PLUS_PLUS.git
+cd CVM_PLUS_PLUS
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 # Binary: build/cvm
 ```
 
-### Direct compile (quick)
+### Direct compile
 ```bash
+# Linux / macOS
 g++ -std=c++17 -O2 -o cvm \
     src/main.cpp src/lexer.cpp src/parser.cpp \
-    src/compiler.cpp src/vm.cpp src/ast_printer.cpp
+    src/compiler.cpp src/vm.cpp src/ast_printer.cpp -I src
+
+# Windows (PowerShell)
+g++ -std=c++17 -O2 -o cvm.exe src/main.cpp src/lexer.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/ast_printer.cpp -I src
 ```
 
 ---
@@ -153,16 +159,13 @@ g++ -std=c++17 -O2 -o cvm \
 ./cvm
 ```
 ```
-╔══════════════════════════════════════════════════╗
-║          CVM++ Interactive REPL  v1.0           ║
-║  Type 'exit' or 'quit' to leave.                ║
-║  End multi-line input with a blank line.        ║
-╚══════════════════════════════════════════════════╝
-
 cvm>> let x = 5;
 cvm>> print x * 2;
+
 10
+cvm>> exit
 ```
+> End multi-line input with a **blank line** to execute.
 
 ### Pipe input
 ```bash
@@ -173,59 +176,59 @@ echo "7" | ./cvm tests/test_input.cvm
 
 ## Debug Mode
 
-Pass `--debug` (or `-d`) to see all three internal representations:
+Pass `--debug` (or `-d`) to see all four internal stages:
 
 ```bash
 ./cvm --debug tests/test_if_else.cvm
 ```
 
-This prints:
+Prints in order:
 1. **Token Stream** — every token with its type and lexeme
-2. **Abstract Syntax Tree** — indented tree of AST nodes
-3. **Bytecode Disassembly** — each opcode with its operand
+2. **Abstract Syntax Tree** — indented tree of all AST nodes
+3. **Bytecode Disassembly** — each opcode with its operand and address
 4. **Execution output** — the actual program result
-
-Example output:
-```
-╔══════════════════════════════════════╗
-║              TOKEN STREAM            ║
-╚══════════════════════════════════════╝
-  [LET]  'let'
-  [IDENTIFIER]  'x'
-  ...
-
-╔══════════════════════════════════════╗
-║         ABSTRACT SYNTAX TREE         ║
-╚══════════════════════════════════════╝
-LetStmt("x")
-  └─ init: NumberExpr(42)
-
-╔══════════════════════════════════════╗
-║          BYTECODE DISASSEMBLY        ║
-╚══════════════════════════════════════╝
-  [   0]  OP_PUSH_INT  42
-  [   5]  OP_STORE  0
-  ...
-
-╔══════════════════════════════════════╗
-║              EXECUTION               ║
-╚══════════════════════════════════════╝
-```
 
 ---
 
 ## Sample Scripts
 
-All sample scripts are in the `tests/` directory:
+| Script | Command | Expected Output |
+|--------|---------|----------------|
+| `test_arithmetic.cvm` | `./cvm tests/test_arithmetic.cvm` | `25` `200` `20` `-10` `40` |
+| `test_booleans.cvm` | `./cvm tests/test_booleans.cvm` | `true` `true` `false` `false` `false` `true` `true` `false` `true` |
+| `test_if_else.cvm` | `./cvm tests/test_if_else.cvm` | `0` `42` `3` `15` |
+| `test_while.cvm` | `./cvm tests/test_while.cvm` | `1 2 3 4 5` then `55` then `120` |
+| `test_fizzbuzz.cvm` | `./cvm tests/test_fizzbuzz.cvm` | FizzBuzz 1–20 (3=Fizz, 5=Buzz, 15=FizzBuzz) |
+| `test_input.cvm` | `echo "7" \| ./cvm tests/test_input.cvm` | `7` then `14` |
 
-| File | What it tests |
-|------|--------------|
-| `test_arithmetic.cvm` | `let`, `+`, `-`, `*`, `/`, unary `-`, parentheses |
-| `test_booleans.cvm` | `true`/`false`, all comparison operators, boolean equality |
-| `test_if_else.cvm` | `if`/`else`, nested conditionals, max of two numbers |
-| `test_while.cvm` | `while` loop, counter, sum 1–10, factorial 5! |
-| `test_fizzbuzz.cvm` | FizzBuzz 1–20 (integer-encoded: 3=Fizz, 5=Buzz, 15=FizzBuzz) |
-| `test_input.cvm` | `input` keyword, stdin reading |
+### Automated test runner
+```bash
+# Linux / macOS
+bash tests/run_tests.sh
+
+# Windows (PowerShell)
+.\tests\run_tests.ps1
+```
+
+---
+
+## Deliverables Checklist
+
+| Deliverable | File / Command | Status |
+|-------------|---------------|--------|
+| C++ program with all modules | `src/` directory | ✅ |
+| Lexer module | `src/lexer.h`, `src/lexer.cpp` | ✅ |
+| Parser module | `src/parser.h`, `src/parser.cpp` | ✅ |
+| AST definitions | `src/ast.h` | ✅ |
+| Bytecode compiler module | `src/compiler.h`, `src/compiler.cpp` | ✅ |
+| VM execution engine | `src/vm.h`, `src/vm.cpp` | ✅ |
+| CLI file runner | `./cvm tests/test_arithmetic.cvm` | ✅ |
+| Interactive REPL | `./cvm` (no args) | ✅ |
+| Show generated AST | `./cvm --debug <file>` | ✅ |
+| Show compiled bytecode | `./cvm --debug <file>` | ✅ |
+| Print execution result | `./cvm <file>` | ✅ |
+| Sample test scripts | `tests/*.cvm` (6 scripts) | ✅ |
+| Build system (CMake) | `CMakeLists.txt` | ✅ |
 
 ---
 
@@ -258,21 +261,38 @@ All integers are encoded **little-endian 32-bit** immediately after the opcode b
 
 ---
 
+## Known Limitations
+
+Intentional constraints within the project scope:
+
+- **No string type** — only integers and booleans are supported
+- **No functions** — no `def`/`fn` keyword; all code is top-level
+- **No arrays** — single scalar variables only
+- **Integer input only** — `input` reads one integer; non-integer input causes undefined behavior
+- **No logical operators** — `&&` and `||` not implemented; use nested `if` instead
+- **No `break`/`continue`** — loops must use condition variables to exit early
+- **Single file execution** — no `import` or multi-file support
+- **Integer overflow** — silently wraps at 32-bit signed integer limits
+
+---
+
 ## Project Structure
 
 ```
-cvm-plus-plus/
+CVM_PLUS_PLUS/
 ├── CMakeLists.txt
 ├── README.md
 ├── src/
-│   ├── main.cpp          # Entry point: REPL, file runner, debug pipeline
-│   ├── lexer.h / .cpp    # Tokenizer
-│   ├── parser.h / .cpp   # Recursive descent parser → AST
-│   ├── ast.h             # AST node definitions
+│   ├── main.cpp              # Entry point: REPL, file runner, debug pipeline
+│   ├── lexer.h / .cpp        # Tokenizer
+│   ├── parser.h / .cpp       # Recursive descent parser -> AST
+│   ├── ast.h                 # AST node definitions
 │   ├── ast_printer.h / .cpp  # Debug AST pretty-printer
-│   ├── compiler.h / .cpp # AST → Bytecode compiler
-│   └── vm.h / .cpp       # Stack-based bytecode VM
+│   ├── compiler.h / .cpp     # AST -> Bytecode compiler
+│   └── vm.h / .cpp           # Stack-based bytecode VM
 └── tests/
+    ├── run_tests.sh           # Automated test runner (Linux/macOS)
+    ├── run_tests.ps1          # Automated test runner (Windows)
     ├── test_arithmetic.cvm
     ├── test_booleans.cvm
     ├── test_if_else.cvm
@@ -285,9 +305,10 @@ cvm-plus-plus/
 
 ## References
 
-- [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom — the definitive guide for this project architecture
+- [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom
 - [Writing a Lexer in C++](https://llvm.org/docs/tutorial/)
 - [Understanding Stack-Based Virtual Machines](https://en.wikipedia.org/wiki/Stack_machine)
 
 ---
 
+*Built with love at IIT Guwahati — Coding Club Even Semester Projects 2026*
