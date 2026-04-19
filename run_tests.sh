@@ -6,7 +6,7 @@ BIN="$ROOT_DIR/build/cvm"
 
 if [[ ! -x "$BIN" ]]; then
   echo "Missing binary: $BIN"
-  echo 'Build first with: cmake -S . -B build && cmake --build build -j$(nproc)'
+  echo "Build first with: cmake -S . -B build && cmake --build build -j$(nproc)"
   exit 1
 fi
 
