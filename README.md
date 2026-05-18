@@ -80,7 +80,7 @@ A register-free, **stack-based** execution engine. Maintains:
 ```
 let x = 10;
 let flag = true;
-x = x + 1;          // re-assignment (no 'let')
+x = x + 1;          
 ```
 
 ### Operators
@@ -212,25 +212,6 @@ bash tests/run_tests.sh
 
 ---
 
-## Deliverables Checklist
-
-| Deliverable | File / Command | Status |
-|-------------|---------------|--------|
-| C++ program with all modules | `src/` directory | ✅ |
-| Lexer module | `src/lexer.h`, `src/lexer.cpp` | ✅ |
-| Parser module | `src/parser.h`, `src/parser.cpp` | ✅ |
-| AST definitions | `src/ast.h` | ✅ |
-| Bytecode compiler module | `src/compiler.h`, `src/compiler.cpp` | ✅ |
-| VM execution engine | `src/vm.h`, `src/vm.cpp` | ✅ |
-| CLI file runner | `./cvm tests/test_arithmetic.cvm` | ✅ |
-| Interactive REPL | `./cvm` (no args) | ✅ |
-| Show generated AST | `./cvm --debug <file>` | ✅ |
-| Show compiled bytecode | `./cvm --debug <file>` | ✅ |
-| Print execution result | `./cvm <file>` | ✅ |
-| Sample test scripts | `tests/*.cvm` (6 scripts) | ✅ |
-| Build system (CMake) | `CMakeLists.txt` | ✅ |
-
----
 
 ## Instruction Set Architecture (ISA)
 
@@ -261,20 +242,7 @@ All integers are encoded **little-endian 32-bit** immediately after the opcode b
 
 ---
 
-## Known Limitations
 
-Intentional constraints within the project scope:
-
-- **No string type** — only integers and booleans are supported
-- **No functions** — no `def`/`fn` keyword; all code is top-level
-- **No arrays** — single scalar variables only
-- **Integer input only** — `input` reads one integer; non-integer input causes undefined behavior
-- **No logical operators** — `&&` and `||` not implemented; use nested `if` instead
-- **No `break`/`continue`** — loops must use condition variables to exit early
-- **Single file execution** — no `import` or multi-file support
-- **Integer overflow** — silently wraps at 32-bit signed integer limits
-
----
 
 ## Project Structure
 
