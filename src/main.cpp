@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <iomanip>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "lexer.h"
 #include "parser.h"
 #include "compiler.h"
@@ -191,6 +194,11 @@ static void repl(bool debug) {
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
 int main(int argc, char* argv[]) {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     bool debug = false;
     std::string filepath;
 

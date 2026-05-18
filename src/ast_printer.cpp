@@ -1,8 +1,15 @@
 #include "ast_printer.h"
 #include <iostream>
 
-void ASTPrinter::pad() const {
-    for (int i = 0; i < indent; i++) std::cout << "  ";
+namespace {
+    const std::string BRANCH = "├── ";
+    const std::string LAST   = "└── ";
+    const std::string PIPE   = "│   ";
+    const std::string BLANK  = "    ";
+}
+
+void ASTPrinter::printNode(const std::string& prefix, bool isLast, const std::string& label) const {
+    std::cout << prefix << (isLast ? LAST : BRANCH) << label << "\n";
 }
 
 std::string ASTPrinter::opName(Tokentype op) const {
@@ -21,78 +28,143 @@ std::string ASTPrinter::opName(Tokentype op) const {
     }
 }
 
-void ASTPrinter::printExpr(const Expr* expr) {
+std::string ASTPrinter::exprSummary(const Expr* expr) const {
     if (auto* n = dynamic_cast<const NumberExpr*>(expr)) {
-        std::cout << "NumberExpr(" << n->val << ")";
+        return "NumberExpr(" + std::to_string(n->val) + ")";
 
     } else if (auto* b = dynamic_cast<const BoolExpr*>(expr)) {
-        std::cout << "BoolExpr(" << (b->val ? "true" : "false") << ")";
+        return std::string("BoolExpr(") + (b->val ? "true" : "false") + ")";
 
     } else if (auto* v = dynamic_cast<const VarExpr*>(expr)) {
-        std::cout << "VarExpr(\"" << v->name << "\")";
+        return "VarExpr(\"" + v->name + "\")";
 
     } else if (auto* bin = dynamic_cast<const BinaryExpr*>(expr)) {
-        std::cout << "BinaryExpr(" << opName(bin->op) << ")\n";
-        indent++;
-        pad(); std::cout << "|-- "; printExpr(bin->left.get());  std::cout << "\n";
-        pad(); std::cout << "\\-- "; printExpr(bin->right.get()); std::cout << "\n";
-        indent--;
+        return "BinaryExpr(" + opName(bin->op) + ")";
 
     } else if (auto* un = dynamic_cast<const UnaryExpr*>(expr)) {
-        std::cout << "UnaryExpr(" << opName(un->op) << ")\n";
-        indent++;
-        pad(); std::cout << "\\-- "; printExpr(un->right.get()); std::cout << "\n";
-        indent--;
+        return "UnaryExpr(" + opName(un->op) + ")";
+    }
+
+    return "Expr";
+}
+
+void ASTPrinter::printExpr(const Expr* expr, const std::string& prefix, bool isLast) {
+    printNode(prefix, isLast, exprSummary(expr));
+
+    if (auto* bin = dynamic_cast<const BinaryExpr*>(expr)) {
+        std::string childPrefix = prefix + (isLast ? BLANK : PIPE);
+        printExpr(bin->left.get(), childPrefix, false);
+        printExpr(bin->right.get(), childPrefix, true);
+
+    } else if (auto* un = dynamic_cast<const UnaryExpr*>(expr)) {
+        std::string childPrefix = prefix + (isLast ? BLANK : PIPE);
+        printExpr(un->right.get(), childPrefix, true);
     }
 }
 
-void ASTPrinter::printStmt(const Stmt* stmt) {
+void ASTPrinter::printLabeledExpr(const std::string& prefix, bool isLast, const std::string& label, const Expr* expr) {
+    printNode(prefix, isLast, label + exprSummary(expr));
+
+    if (auto* bin = dynamic_cast<const BinaryExpr*>(expr)) {
+        std::string childPrefix = prefix + (isLast ? BLANK : PIPE);
+        printExpr(bin->left.get(), childPrefix, false);
+        printExpr(bin->right.get(), childPrefix, true);
+
+    } else if (auto* un = dynamic_cast<const UnaryExpr*>(expr)) {
+        std::string childPrefix = prefix + (isLast ? BLANK : PIPE);
+        printExpr(un->right.get(), childPrefix, true);
+    }
+}
+
+void ASTPrinter::printStmt(const Stmt* stmt, const std::string& prefix, bool isLast) {
     if (auto* s = dynamic_cast<const LetStmt*>(stmt)) {
-        pad(); std::cout << "LetStmt(\"" << s->name << "\")\n";
-        indent++;
-        pad(); std::cout << "\\-- init: "; printExpr(s->init.get()); std::cout << "\n";
-        indent--;
+        printNode(prefix, isLast, "LetStmt(\"" + s->name + "\")");
+        printLabeledExpr(prefix + (isLast ? BLANK : PIPE), true, "init: ", s->init.get());
 
     } else if (auto* s = dynamic_cast<const AssignStmt*>(stmt)) {
-        pad(); std::cout << "AssignStmt(\"" << s->name << "\")\n";
-        indent++;
-        pad(); std::cout << "\\-- value: "; printExpr(s->value.get()); std::cout << "\n";
-        indent--;
+        printNode(prefix, isLast, "AssignStmt(\"" + s->name + "\")");
+        printLabeledExpr(prefix + (isLast ? BLANK : PIPE), true, "value: ", s->value.get());
 
     } else if (auto* s = dynamic_cast<const PrintStmt*>(stmt)) {
-        pad(); std::cout << "PrintStmt\n";
-        indent++;
-        pad(); std::cout << "\\-- "; printExpr(s->value.get()); std::cout << "\n";
-        indent--;
+        printNode(prefix, isLast, "PrintStmt");
+        printExpr(s->value.get(), prefix + (isLast ? BLANK : PIPE), true);
 
     } else if (auto* s = dynamic_cast<const InputStmt*>(stmt)) {
-        pad(); std::cout << "InputStmt(\"" << s->name << "\")\n";
+        printNode(prefix, isLast, "InputStmt(\"" + s->name + "\")");
 
     } else if (auto* s = dynamic_cast<const IfStmt*>(stmt)) {
-        pad(); std::cout << "IfStmt\n";
-        indent++;
-        pad(); std::cout << "|-- condition: "; printExpr(s->condition.get()); std::cout << "\n";
-        pad(); std::cout << "|-- then:\n";
-        indent++;
-        for (auto& st : s->thenBranch) printStmt(st.get());
-        indent--;
-        if (!s->elseBranch.empty()) {
-            pad(); std::cout << "\\-- else:\n";
-            indent++;
-            for (auto& st : s->elseBranch) printStmt(st.get());
-            indent--;
+        printNode(prefix, isLast, "IfStmt");
+        std::string childPrefix = prefix + (isLast ? BLANK : PIPE);
+        bool hasElse = !s->elseBranch.empty();
+
+        printLabeledExpr(childPrefix, false, "condition: ", s->condition.get());
+        printNode(childPrefix, hasElse ? false : true, "then:");
+        std::string thenPrefix = childPrefix + (hasElse ? PIPE : BLANK);
+        for (std::size_t i = 0; i < s->thenBranch.size(); ++i) {
+            printStmt(s->thenBranch[i].get(), thenPrefix, i + 1 == s->thenBranch.size());
         }
-        indent--;
+        if (!s->elseBranch.empty()) {
+            printNode(childPrefix, true, "else:");
+            std::string elsePrefix = childPrefix + BLANK;
+            for (std::size_t i = 0; i < s->elseBranch.size(); ++i) {
+                printStmt(s->elseBranch[i].get(), elsePrefix, i + 1 == s->elseBranch.size());
+            }
+        }
 
     } else if (auto* s = dynamic_cast<const WhileStmt*>(stmt)) {
-        pad(); std::cout << "WhileStmt\n";
-        indent++;
-        pad(); std::cout << "|-- condition: "; printExpr(s->condition.get()); std::cout << "\n";
-        pad(); std::cout << "\\-- body:\n";
-        indent++;
-        for (auto& st : s->body) printStmt(st.get());
-        indent--;
-        indent--;
+        printNode(prefix, isLast, "WhileStmt");
+        std::string childPrefix = prefix + (isLast ? BLANK : PIPE);
+        printLabeledExpr(childPrefix, false, "condition: ", s->condition.get());
+        printNode(childPrefix, true, "body:");
+        std::string bodyPrefix = childPrefix + BLANK;
+        for (std::size_t i = 0; i < s->body.size(); ++i) {
+            printStmt(s->body[i].get(), bodyPrefix, i + 1 == s->body.size());
+        }
+    }
+}
+
+void ASTPrinter::printStmtRoot(const Stmt* stmt) {
+    if (auto* s = dynamic_cast<const LetStmt*>(stmt)) {
+        std::cout << "LetStmt(\"" << s->name << "\")\n";
+        printLabeledExpr("", true, "init: ", s->init.get());
+
+    } else if (auto* s = dynamic_cast<const AssignStmt*>(stmt)) {
+        std::cout << "AssignStmt(\"" << s->name << "\")\n";
+        printLabeledExpr("", true, "value: ", s->value.get());
+
+    } else if (auto* s = dynamic_cast<const PrintStmt*>(stmt)) {
+        std::cout << "PrintStmt\n";
+        printExpr(s->value.get(), "", true);
+
+    } else if (auto* s = dynamic_cast<const InputStmt*>(stmt)) {
+        std::cout << "InputStmt(\"" << s->name << "\")\n";
+
+    } else if (auto* s = dynamic_cast<const IfStmt*>(stmt)) {
+        std::cout << "IfStmt\n";
+        bool hasElse = !s->elseBranch.empty();
+
+        printLabeledExpr("", false, "condition: ", s->condition.get());
+        printNode("", hasElse ? false : true, "then:");
+        std::string thenPrefix = hasElse ? PIPE : BLANK;
+        for (std::size_t i = 0; i < s->thenBranch.size(); ++i) {
+            printStmt(s->thenBranch[i].get(), thenPrefix, i + 1 == s->thenBranch.size());
+        }
+        if (hasElse) {
+            printNode("", true, "else:");
+            std::string elsePrefix = BLANK;
+            for (std::size_t i = 0; i < s->elseBranch.size(); ++i) {
+                printStmt(s->elseBranch[i].get(), elsePrefix, i + 1 == s->elseBranch.size());
+            }
+        }
+
+    } else if (auto* s = dynamic_cast<const WhileStmt*>(stmt)) {
+        std::cout << "WhileStmt\n";
+        printLabeledExpr("", false, "condition: ", s->condition.get());
+        printNode("", true, "body:");
+        std::string bodyPrefix = BLANK;
+        for (std::size_t i = 0; i < s->body.size(); ++i) {
+            printStmt(s->body[i].get(), bodyPrefix, i + 1 == s->body.size());
+        }
     }
 }
 
@@ -101,7 +173,7 @@ void ASTPrinter::print(const std::vector<std::unique_ptr<Stmt>>& stmts) {
     std::cout << "          ABSTRACT SYNTAX TREE         \n";
     std::cout << "=======================================\n";
     for (auto& stmt : stmts) {
-        printStmt(stmt.get());
+        printStmtRoot(stmt.get());
     }
     std::cout << "\n";
 }
