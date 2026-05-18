@@ -15,10 +15,11 @@ Built as part of the **IIT Guwahati Coding Club Even Semester Projects 2026**.
 - [Running](#running)
 - [Debug Mode](#debug-mode)
 - [Sample Scripts](#sample-scripts)
-- [Deliverables Checklist](#deliverables-checklist)
 - [Instruction Set Architecture (ISA)](#instruction-set-architecture-isa)
 - [Known Limitations](#known-limitations)
 - [Project Structure](#project-structure)
+- [Running Tests](#running-tests)
+- [References](#references)
 
 ---
 
@@ -80,7 +81,7 @@ A register-free, **stack-based** execution engine. Maintains:
 ```
 let x = 10;
 let flag = true;
-x = x + 1;          
+x = x + 1;          // re-assignment (no 'let')
 ```
 
 ### Operators
@@ -155,13 +156,21 @@ g++ -std=c++17 -O2 -o cvm src/main.cpp src/lexer.cpp src/parser.cpp src/compiler
 
 ### Run a `.cvm` file
 ```bash
+# Windows
 .\build\cvm.exe tests\test_arithmetic.cvm
+
+# macOS
+./build/cvm tests/test_arithmetic.cvm
 ```
 
 ### Interactive REPL
 > End multi-line input with a **blank line** to execute.
 ```bash
-./cvm
+# Windows
+.\build\cvm.exe
+
+# macOS
+./build/cvm
 ```
 ```
 cvm>> let x = 5;
@@ -171,10 +180,13 @@ cvm>> print x * 2;
 cvm>> exit
 ```
 
-
 ### Pipe input
 ```bash
-echo "7" | .\build\cvm.exe tests\test_input.cvm 
+# Windows
+cmd /c "echo 7 | .\build\cvm.exe tests\test_input.cvm"
+
+# macOS
+echo "7" | ./build/cvm tests/test_input.cvm
 ```
 
 ---
@@ -184,7 +196,11 @@ echo "7" | .\build\cvm.exe tests\test_input.cvm
 Pass `--debug` (or `-d`) to see all four internal stages:
 
 ```bash
-.\build\cvm.exe --debug tests/test_if_else.cvm
+# Windows
+.\build\cvm.exe --debug tests\test_if_else.cvm
+
+# macOS
+./build/cvm --debug tests/test_if_else.cvm
 ```
 
 Prints in order:
@@ -199,14 +215,14 @@ Prints in order:
 
 | Script | Command | Expected Output |
 |--------|---------|----------------|
-| `test_arithmetic.cvm` | `./cvm tests/test_arithmetic.cvm` | `25` `200` `20` `-10` `40` |
-| `test_booleans.cvm` | `./cvm tests/test_booleans.cvm` | `true` `true` `false` `false` `false` `true` `true` `false` `true` |
-| `test_if_else.cvm` | `./cvm tests/test_if_else.cvm` | `0` `42` `3` `15` |
-| `test_while.cvm` | `./cvm tests/test_while.cvm` | `1 2 3 4 5` then `55` then `120` |
-| `test_fizzbuzz.cvm` | `./cvm tests/test_fizzbuzz.cvm` | FizzBuzz 1–20 (3=Fizz, 5=Buzz, 15=FizzBuzz) |
-| `test_input.cvm` | `echo "7" \| ./cvm tests/test_input.cvm` | `7` then `14` |
+| `test_arithmetic.cvm` | `./build/cvm tests/test_arithmetic.cvm` | `25` `200` `20` `-10` `40` |
+| `test_booleans.cvm` | `./build/cvm tests/test_booleans.cvm` | `true` `true` `false` `false` `false` `true` `true` `false` `true` |
+| `test_if_else.cvm` | `./build/cvm tests/test_if_else.cvm` | `0` `42` `3` `15` |
+| `test_while.cvm` | `./build/cvm tests/test_while.cvm` | `1 2 3 4 5` then `55` then `120` |
+| `test_fizzbuzz.cvm` | `./build/cvm tests/test_fizzbuzz.cvm` | FizzBuzz 1–20 (3=Fizz, 5=Buzz, 15=FizzBuzz) |
+| `test_input.cvm` | `echo "7" \| ./build/cvm tests/test_input.cvm` | `7` then `14` |
 
-
+---
 
 ## Instruction Set Architecture (ISA)
 
@@ -237,7 +253,14 @@ All integers are encoded **little-endian 32-bit** immediately after the opcode b
 
 ---
 
+## Known Limitations
 
+- No function definitions or call support (no user-defined functions or procedures).
+- No string type or string operations — only integers and booleans are supported.
+- Variables must be declared with `let` before use (the compiler enforces this).
+- Single-line comments only (`//`). No multi-line comment support.
+
+---
 
 ## Project Structure
 
@@ -254,7 +277,7 @@ CVM_PLUS_PLUS/
 │   ├── compiler.h / .cpp     # AST -> Bytecode compiler
 │   └── vm.h / .cpp           # Stack-based bytecode VM
 └── tests/
-    ├── run_tests.sh           # Automated test runner (Linux/macOS)
+    ├── run_tests.sh           # Automated test runner (macOS/Linux)
     ├── run_tests.ps1          # Automated test runner (Windows)
     ├── test_arithmetic.cvm
     ├── test_booleans.cvm
@@ -266,6 +289,30 @@ CVM_PLUS_PLUS/
 
 ---
 
+## Running Tests
+
+Two automated runners are included in `tests/` to exercise all sample scripts:
+
+- `tests/run_tests.sh` — POSIX shell runner (macOS, Linux, WSL)
+- `tests/run_tests.ps1` — PowerShell runner (Windows)
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tests\run_tests.ps1
+```
+
+**macOS / Linux:**
+```bash
+bash tests/run_tests.sh
+```
+
+> **Note:** Build the project first before running tests. For `test_input.cvm` on Windows, use cmd-style piping if PowerShell gives unexpected results:
+> ```cmd
+> cmd /c "echo 7 | .\build\cvm.exe tests\test_input.cvm"
+> ```
+
+---
+
 ## References
 
 - [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom
@@ -273,4 +320,3 @@ CVM_PLUS_PLUS/
 - [Understanding Stack-Based Virtual Machines](https://en.wikipedia.org/wiki/Stack_machine)
 
 ---
-

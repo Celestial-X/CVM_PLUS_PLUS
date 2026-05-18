@@ -10,6 +10,14 @@ int Compiler::getOrCreateSlot(const std::string& name) {
     return nextSlot++;
 }
 
+int Compiler::getSlot(const std::string& name) const {
+    auto it = varSlots.find(name);
+    if (it == varSlots.end()) {
+        throw std::runtime_error("Compiler Error: Use of undeclared variable '" + name + "'");
+    }
+    return it->second;
+}
+
 void Compiler::emitByte(uint8_t byte) {
     code.push_back(byte);
 }
@@ -58,7 +66,11 @@ void Compiler::compileExpr(const Expr* expr) {
         emitByte(b->val ? 1 : 0);
 
     } else if (auto* v = dynamic_cast<const VarExpr*>(expr)) {
-        int slot = getOrCreateSlot(v->name);
+        // Loading a variable requires it to have been declared previously
+        if (declaredVars.find(v->name) == declaredVars.end()) {
+            throw std::runtime_error("Compiler Error: Use of undeclared variable '" + v->name + "'");
+        }
+        int slot = getSlot(v->name);
         emitOpInt(OP_LOAD, slot);
 
     } else if (auto* bin = dynamic_cast<const BinaryExpr*>(expr)) {
@@ -97,13 +109,19 @@ void Compiler::compileExpr(const Expr* expr) {
 
 void Compiler::compileStmt(const Stmt* stmt) {
     if (auto* s = dynamic_cast<const LetStmt*>(stmt)) {
+        // Compile initializer first, then create the slot and mark declared
         compileExpr(s->init.get());
         int slot = getOrCreateSlot(s->name);
+        declaredVars.insert(s->name);
         emitOpInt(OP_STORE, slot);
 
     } else if (auto* s = dynamic_cast<const AssignStmt*>(stmt)) {
+        // Assignment requires prior declaration
+        if (declaredVars.find(s->name) == declaredVars.end()) {
+            throw std::runtime_error("Compiler Error: Assignment to undeclared variable '" + s->name + "'");
+        }
         compileExpr(s->value.get());
-        int slot = getOrCreateSlot(s->name);
+        int slot = getSlot(s->name);
         emitOpInt(OP_STORE, slot);
 
     } else if (auto* s = dynamic_cast<const PrintStmt*>(stmt)) {
@@ -111,7 +129,11 @@ void Compiler::compileStmt(const Stmt* stmt) {
         emitByte(OP_PRINT);
 
     } else if (auto* s = dynamic_cast<const InputStmt*>(stmt)) {
-        int slot = getOrCreateSlot(s->name);
+        // Input requires prior declaration
+        if (declaredVars.find(s->name) == declaredVars.end()) {
+            throw std::runtime_error("Compiler Error: Input to undeclared variable '" + s->name + "'");
+        }
+        int slot = getSlot(s->name);
         emitOpInt(OP_INPUT, slot);
 
     } else if (auto* s = dynamic_cast<const IfStmt*>(stmt)) {

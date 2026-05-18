@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <cstdint>
 #include "ast.h"
@@ -15,9 +16,10 @@ class Compiler {
 private:
     std::vector<uint8_t> code;
     std::unordered_map<std::string, int> varSlots;
+    std::unordered_set<std::string> declaredVars;
     int nextSlot = 0;
-
     int getOrCreateSlot(const std::string& name);
+    int getSlot(const std::string& name) const;
 
     void emitByte(uint8_t byte);
     void emitInt32(int32_t val);
