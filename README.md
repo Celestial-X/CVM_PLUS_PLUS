@@ -155,10 +155,11 @@ g++ -std=c++17 -O2 -o cvm src/main.cpp src/lexer.cpp src/parser.cpp src/compiler
 
 ### Run a `.cvm` file
 ```bash
-./cvm tests/test_arithmetic.cvm
+.\build\cvm.exe tests\test_arithmetic.cvm
 ```
 
 ### Interactive REPL
+> End multi-line input with a **blank line** to execute.
 ```bash
 ./cvm
 ```
@@ -169,11 +170,11 @@ cvm>> print x * 2;
 10
 cvm>> exit
 ```
-> End multi-line input with a **blank line** to execute.
+
 
 ### Pipe input
 ```bash
-echo "7" | ./cvm tests/test_input.cvm
+echo "7" | .\build\cvm.exe tests\test_input.cvm 
 ```
 
 ---
@@ -183,7 +184,7 @@ echo "7" | ./cvm tests/test_input.cvm
 Pass `--debug` (or `-d`) to see all four internal stages:
 
 ```bash
-./cvm --debug tests/test_if_else.cvm
+.\build\cvm.exe --debug tests/test_if_else.cvm
 ```
 
 Prints in order:
@@ -205,16 +206,6 @@ Prints in order:
 | `test_fizzbuzz.cvm` | `./cvm tests/test_fizzbuzz.cvm` | FizzBuzz 1–20 (3=Fizz, 5=Buzz, 15=FizzBuzz) |
 | `test_input.cvm` | `echo "7" \| ./cvm tests/test_input.cvm` | `7` then `14` |
 
-### Automated test runner
-```bash
-# Linux / macOS
-bash tests/run_tests.sh
-
-# Windows (PowerShell)
-.\tests\run_tests.ps1
-```
-
----
 
 
 ## Instruction Set Architecture (ISA)
