@@ -126,23 +126,27 @@ input x;        // reads one integer from stdin into variable x
 
 ### With CMake (recommended)
 ```bash
-git clone https://github.com/Celestial-X/CVM_PLUS_PLUS.git
-cd CVM_PLUS_PLUS
+# Windows (PowerShell) — run from project root
+mkdir build
+cd build
+cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+ninja
+# Binary: build/cvm.exe
+
+# macOS (Terminal) — run from project root
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+make
 # Binary: build/cvm
 ```
 
 ### Direct compile
 ```bash
-# Linux / macOS
-g++ -std=c++17 -O2 -o cvm \
-    src/main.cpp src/lexer.cpp src/parser.cpp \
-    src/compiler.cpp src/vm.cpp src/ast_printer.cpp -I src
-
 # Windows (PowerShell)
 g++ -std=c++17 -O2 -o cvm.exe src/main.cpp src/lexer.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/ast_printer.cpp -I src
+
+# macOS (Terminal)
+g++ -std=c++17 -O2 -o cvm src/main.cpp src/lexer.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/ast_printer.cpp -I src
 ```
 
 ---
